@@ -85,16 +85,17 @@ public class Main {
             if(g.midX==-2){ // 완전 처음.
                 if(forest[0][g.midY]==-1){
                     g = Golem.down(g); continue;
-                } else if(forest[0][g.midY-1]==-1){
+                } else if(g.midY-2>=0 && forest[0][g.midY-1]==-1){
                     g = Golem.left(g); continue;
-                } else if(forest[0][g.midY+1]==-1){
+                } else if(g.midY+2<C && forest[0][g.midY+1]==-1){
                     g = Golem.right(g); continue;
                 } else{
                     return null;
                 }
             }
             if(g.midX==-1){
-                if(forest[1][g.midY]==-1){
+                if(g.midY-1>=0 && g.midY+1<C && 
+                forest[1][g.midY]==-1 && forest[0][g.midY-1]==-1 && forest[0][g.midY+1]==-1){
                     g = Golem.down(g); continue;
                 } else if(g.midY-2>=0 && forest[1][g.midY-1]==-1 && forest[0][g.midY-2]==-1){
                     g = Golem.left(g); continue;
