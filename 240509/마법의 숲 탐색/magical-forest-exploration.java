@@ -21,6 +21,7 @@ public class Main {
     }
 
     static int[][] forest; // 숲의 이동가능한 위치 & 어떤 골렘이 위치해있는지 저장.
+    static boolean[][] isExit;
     static int R,C;
     static int[] maxSouth;
     public static void main(String[] args) throws Exception{
@@ -35,6 +36,7 @@ public class Main {
 
         int sum = 0;
         forest = new int[R][C];
+        isExit = new boolean[R][C];
         for(int i=0;i<R;i++){
             Arrays.fill(forest[i],-1);
         }
@@ -54,6 +56,9 @@ public class Main {
                 for(int r=0;r<R;r++){
                     Arrays.fill(forest[r],-1);
                 }
+                for(int r=0;r<R;r++){
+                    Arrays.fill(isExit[r],false);
+                }
                 continue;
             }
             // System.out.println(g.midX+" "+g.midY+" "+g.exit);
@@ -61,7 +66,8 @@ public class Main {
             // 현재 골렘의 출구가 다른 골렘과 맞다아 있는지 확인.
             // 1. 있으면 -> 그 번호의 골렘이 이동한 남쪽 위치 받음.
             // 2. 현재 골렘에서 이동할 수 있는 가장 남쪽 행.        => 2개의 최대값
-            checkMaxSouth(g,i);
+            // checkMaxSouth(g,i);
+            bfs(g.midX, g.midY, i);
             sum += maxSouth[i]+1; // 0~R-1 로 되어있어서 +1 해줌.
 
             // System.out.println(maxSouth[i]+1);
@@ -153,32 +159,75 @@ public class Main {
             forest[g.midX][g.midY+1]=idx;
             forest[g.midX][g.midY-1]=idx;
             maxSouth[idx] = g.midX+1; // 현재 골렘의 가운데 +1만큼 내려옴.
+
+            int exitX=g.midX, exitY=g.midY;
+            switch(g.exit){
+                case 0:{ exitX=exitX-1; break; }
+                case 1:{ exitY=exitY+1; break; }
+                case 2:{ exitX=exitX+1; break; }
+                case 3:{ exitY=exitY-1; break; }
+            }
+            isExit[exitX][exitY] = true;
+
             break;
         }
 
         return g;
     }
-    static void checkMaxSouth(Golem g, int idx){
-        int x = g.midX;
-        int y = g.midY;
-
-        switch (g.exit) { // 출구 방향으로 이동.
-            case 0:{ x--; break; }
-            case 1:{ y++; break; }
-            case 2:{ x++; break; }
-            case 3:{ y--; break; }
-        }
-
+    static int bfs(int x, int y, int idx){
         int[] dx = {1,-1,0,0};
         int[] dy = {0,0,1,-1};
 
-        for(int i=0;i<4;i++){ // 상하좌우를 보면서 기존의 골렘이랑 연결되어있고, 그 골렘을 통해 남쪽으로 내려간 위치가 더 크면 갱신.
-            int nx = x+dx[i];
-            int ny = y+dy[i];
+        int result = x;
 
-            if(nx>=0 && nx<R && ny>=0 && ny<C && forest[nx][ny]>=0){
-                maxSouth[idx] = Math.max(maxSouth[idx], maxSouth[forest[nx][ny]]);
+        Queue<int[]> q = new LinkedList<>();
+        boolean[][] visited = new boolean[R][C];
+        q.add(new int[]{x,y});
+        visited[x][y]=true;
+
+        while(!q.isEmpty()){
+            int[] now = q.poll();
+
+            for(int i=0;i<4;i++){
+                int nx = now[0]+dx[i];
+                int ny = now[1]+dy[i];
+
+                if(nx<0 || nx>=R || ny<0 || ny>=C || visited[nx][ny]) continue;
+                // 같은 골렘 안에 있거나, 출구쪽이면 이동 가능.
+                if(forest[nx][ny]==forest[now[0]][now[1]] || (forest[nx][ny]!=-1 && isExit[now[0]][now[1]])){
+                    q.add(new int[]{nx,ny});
+                    visited[nx][ny]=true;
+                    result = Math.max(result, nx);
+                }
             }
         }
+
+        maxSouth[idx] = result;
+        return result;
     }
+    // static void checkMaxSouth(Golem g, int idx){
+    //     int x = g.midX;
+    //     int y = g.midY;
+
+    //     switch (g.exit) { // 출구 방향으로 이동.
+    //         case 0:{ x--; break; }
+    //         case 1:{ y++; break; }
+    //         case 2:{ x++; break; }
+    //         case 3:{ y--; break; }
+    //     }
+
+    //     isExit[x][y] = true;
+
+    //     int[] dx = {1,-1,0,0};
+    //     int[] dy = {0,0,1,-1};
+
+    //     for(int i=0;i<4;i++){ // 상하좌우를 보면서 기존의 골렘이랑 연결되어있고, 그 골렘을 통해 남쪽으로 내려간 위치가 더 크면 갱신.
+    //         int nx = x+dx[i];
+    //         int ny = y+dy[i];
+
+    //         if(nx>=0 && nx<R && ny>=0 && ny<C && forest[nx][ny]>=0){
+    //             maxSouth[idx] = Math.max(maxSouth[idx], maxSouth[forest[nx][ny]]);
+    //         }
+    //     }
+    // }
 }
